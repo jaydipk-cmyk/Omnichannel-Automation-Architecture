@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Omnichannel Automation Architecture</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f1f5f9;
+            color: #0f172a;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+        /* Smooth border pulse animations */
+        .anim-pulse-border { animation: pulseBorder 2s infinite; }
+        @keyframes pulseBorder {
+            0% { border-color: rgba(59, 130, 246, 0.4); box-shadow: 0 0 0 rgba(59, 130, 246, 0); }
+            50% { border-color: rgba(59, 130, 246, 0.9); box-shadow: 0 0 20px rgba(59, 130, 246, 0.2); }
+            100% { border-color: rgba(59, 130, 246, 0.4); box-shadow: 0 0 0 rgba(59, 130, 246, 0); }
+        }
+
+        .node-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Glassmorphism subtle card styling */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+        }
+
+        /* Animated SVG flowing dash lines */
+        @keyframes dashFlowForward {
+            from { stroke-dashoffset: 24; }
+            to { stroke-dashoffset: 0; }
+        }
+        @keyframes dashFlowBackward {
+            from { stroke-dashoffset: 0; }
+            to { stroke-dashoffset: 24; }
+        }
+
+        .flow-blue-forward {
+            stroke-dasharray: 8 6 !important;
+            animation: dashFlowForward 0.9s linear infinite !important;
+            stroke: #2563eb !important;
+            stroke-width: 2.5px !important;
+        }
+
+        .flow-blue-backward {
+            stroke-dasharray: 8 6 !important;
+            animation: dashFlowBackward 0.9s linear infinite !important;
+            stroke: #0284c7 !important;
+            stroke-width: 2.5px !important;
+        }
+
+        .flow-emerald-backward {
+            stroke-dasharray: 8 6 !important;
+            animation: dashFlowBackward 0.9s linear infinite !important;
+            stroke: #059669 !important;
+            stroke-width: 2.5px !important;
+        }
+
+        .flow-purple-forward {
+            stroke-dasharray: 8 6 !important;
+            animation: dashFlowForward 0.9s linear infinite !important;
+            stroke: #9333ea !important;
+            stroke-width: 2.5px !important;
+        }
+
+        .flow-cyan-backward {
+            stroke-dasharray: 8 6 !important;
+            animation: dashFlowBackward 0.9s linear infinite !important;
+            stroke: #0891b2 !important;
+            stroke-width: 2.5px !important;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-blue-100 selection:text-blue-900 bg-slate-100 flex flex-col justify-between h-screen p-4 md:p-8">
+
+    <!-- Top Header & Banner Area -->
+    <div class="max-w-7xl w-full mx-auto flex flex-col gap-3 shrink-0 z-20">
+        <div class="flex flex-wrap justify-between items-center gap-2">
+            <div>
+                <h1 class="text-xl md:text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight">
+                    Omnichannel Automation Architecture
+                </h1>
+                <p class="text-slate-500 text-xs md:text-sm font-medium">
+                    Real-time automated data flow between Channels, Central ERP Hub, and Logistics Network.
+                </p>
+            </div>
+            <div class="flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full shadow-sm">
+                <span class="w-2 h-2 rounded-full bg-blue-600 animate-ping"></span>
+                <span>Live Automation Engine</span>
+            </div>
+        </div>
+
+        <!-- Dynamic Status Bar -->
+        <div id="sys-status" class="w-full bg-white text-slate-700 text-xs md:text-sm py-2.5 px-5 rounded-2xl text-center font-mono tracking-wide transition-all duration-300 border border-slate-200 shadow-sm font-bold flex items-center justify-center min-h-[46px]">
+            INITIALIZING AUTOMATION...
+        </div>
+    </div>
+
+    <!-- Main Interactive Canvas Area -->
+    <div class="max-w-7xl w-full mx-auto flex-1 my-3 relative min-h-0 flex items-center justify-center">
+        <div id="diagram-container" class="relative w-full h-full glass-card border border-slate-200/90 rounded-3xl p-4 md:p-6 lg:p-8 flex items-center justify-between gap-4 md:gap-8 overflow-hidden shadow-xl shadow-slate-200/50">
+            
+            <!-- Dynamic Connecting Lines SVG -->
+            <svg id="svg-canvas" class="absolute inset-0 w-full h-full pointer-events-none z-0"></svg>
+
+            <!-- LEFT COLUMN: Sales Channels -->
+            <div class="w-1/4 max-w-[280px] min-w-[200px] flex flex-col justify-center gap-2.5 md:gap-3.5 z-10">
+                <div class="text-[11px] font-extrabold uppercase tracking-widest text-slate-400 mb-0.5 ml-1 flex items-center gap-1.5">
+                    <i class="fa-solid fa-store text-blue-500"></i> Sales Channels
+                </div>
+                
+                <div id="node-shopify" class="node-card bg-white border border-slate-200 rounded-2xl p-2.5 md:p-3 flex items-center gap-3 shadow-sm hover:shadow-md">
+                    <div class="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-[#95bf47]/10 flex items-center justify-center text-[#95bf47] shrink-0 font-bold">
+                        <i class="fa-brands fa-shopify text-lg md:text-xl"></i>
+                    </div>
+                    <div class="overflow-hidden">
+                        <h3 class="font-bold text-slate-800 text-xs md:text-sm truncate">Shopify</h3>
+                        <p class="text-[10px] text-slate-500 truncate">Web Store</p>
+                    </div>
+                </div>
+
+                <div id="node-marketplaces" class="node-card bg-white border border-slate-200 rounded-2xl p-2.5 md:p-3 flex items-center gap-3 shadow-sm hover:shadow-md">
+                    <div class="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500 shrink-0 font-bold">
+                        <i class="fa-solid fa-basket-shopping text-lg md:text-xl"></i>
+                    </div>
+                    <div class="overflow-hidden">
+                        <h3 class="font-bold text-slate-800 text-xs md:text-sm truncate">Marketplaces</h3>
+                        <p class="text-[10px] text-slate-500 truncate">Amazon, Flipkart, Myntra</p>
+                    </div>
+                </div>
+
+                <div id="node-niche" class="node-card bg-white border border-slate-200 rounded-2xl p-2.5 md:p-3 flex items-center gap-3 shadow-sm hover:shadow-md">
+                    <div class="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-[#fc2779]/10 flex items-center justify-center text-[#fc2779] shrink-0 font-bold">
+                        <i class="fa-solid fa-bag-shopping text-lg md:text-xl"></i>
+                    </div>
+                    <div class="overflow-hidden">
+                        <h3 class="font-bold text-slate-800 text-xs md:text-sm truncate">Niche Platforms</h3>
+                        <p class="text-[10px] text-slate-500 truncate">Nykaa, FirstCry, Ozi</p>
+                    </div>
+                </div>
+
+                <div id="node-pos" class="node-card bg-white border border-slate-200 rounded-2xl p-2.5 md:p-3 flex items-center gap-3 shadow-sm hover:shadow-md">
+                    <div class="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-teal-500/10 flex items-center justify-center text-teal-600 shrink-0 font-bold">
+                        <i class="fa-solid fa-shop text-lg md:text-xl"></i>
+                    </div>
+                    <div class="overflow-hidden">
+                        <h3 class="font-bold text-slate-800 text-xs md:text-sm truncate">Retail POS</h3>
+                        <p class="text-[10px] text-slate-500 truncate">Physical Brand Stores</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CENTER COLUMN: Centralized ERP Hub -->
+            <div class="w-2/5 min-w-[280px] max-w-[420px] z-10 flex justify-center h-full items-center">
+                <div id="node-odoo" class="w-full bg-white border border-slate-200/90 rounded-3xl shadow-xl overflow-hidden transition-all duration-500 relative flex flex-col my-auto">
+                    
+                    <!-- ERP Hub Header -->
+                    <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-4 md:p-5 flex flex-col items-center justify-center text-center shadow-inner">
+                        <div class="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30 mb-2">
+                            <i class="fa-solid fa-layer-group text-white text-2xl"></i>
+                        </div>
+                        <h3 class="font-black text-white text-base md:text-xl tracking-tight">Centralized ERP Hub</h3>
+                        <p class="text-[10px] text-blue-300 font-bold uppercase tracking-widest mt-0.5">Core Enterprise Platform</p>
+                    </div>
+                    
+                    <!-- ERP Modules Container -->
+                    <div class="p-2.5 md:p-3 flex flex-col gap-2 bg-slate-50/50 max-h-[420px] overflow-y-auto">
+                        
+                        <div id="mod-sales" class="node-card border border-slate-200 bg-white rounded-xl p-2 md:p-2.5 flex flex-col gap-0.5 shadow-sm">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-file-invoice text-blue-600 text-sm w-5 text-center"></i>
+                                <span class="text-xs md:text-sm font-bold text-slate-800">Sales Order Management</span>
+                            </div>
+                            <span class="text-[10px] text-slate-500 ml-7 leading-tight">Import & standardize orders from all channels.</span>
+                        </div>
+
+                        <div id="mod-invoice" class="node-card border border-slate-200 bg-white rounded-xl p-2 md:p-2.5 flex flex-col gap-0.5 shadow-sm">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-receipt text-indigo-600 text-sm w-5 text-center"></i>
+                                <span class="text-xs md:text-sm font-bold text-slate-800">Automated Invoicing & E-Way Bill</span>
+                            </div>
+                            <span class="text-[10px] text-slate-500 ml-7 leading-tight">Instant GST tax invoice generation & legal compliance.</span>
+                        </div>
+
+                        <div id="mod-stock" class="node-card border border-slate-200 bg-white rounded-xl p-2 md:p-2.5 flex flex-col gap-0.5 shadow-sm">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-boxes-stacked text-emerald-600 text-sm w-5 text-center"></i>
+                                <span class="text-xs md:text-sm font-bold text-slate-800">Live Stock Ledger</span>
+                            </div>
+                            <span class="text-[10px] text-slate-500 ml-7 leading-tight">Instant stock deduction & global inventory sync.</span>
+                        </div>
+
+                        <div id="mod-qc" class="node-card border border-slate-200 bg-white rounded-xl p-2 md:p-2.5 flex flex-col gap-0.5 shadow-sm">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-clipboard-check text-amber-500 text-sm w-5 text-center"></i>
+                                <span class="text-xs md:text-sm font-bold text-slate-800">Quality Control (QC)</span>
+                            </div>
+                            <span class="text-[10px] text-slate-500 ml-7 leading-tight">Enforce strict item inspection workflows.</span>
+                        </div>
+                        
+                        <div id="mod-pick" class="node-card border border-slate-200 bg-white rounded-xl p-2 md:p-2.5 flex flex-col gap-0.5 shadow-sm">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-box-open text-orange-500 text-sm w-5 text-center"></i>
+                                <span class="text-xs md:text-sm font-bold text-slate-800">Pick, Pack & Fulfill</span>
+                            </div>
+                            <span class="text-[10px] text-slate-500 ml-7 leading-tight">Barcode-driven batch picking & route optimization.</span>
+                        </div>
+
+                        <div id="mod-recon" class="node-card border border-slate-200 bg-white rounded-xl p-2 md:p-2.5 flex flex-col gap-0.5 shadow-sm">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-scale-balanced text-violet-600 text-sm w-5 text-center"></i>
+                                <span class="text-xs md:text-sm font-bold text-slate-800">Financial & Payment Reconciliation</span>
+                            </div>
+                            <span class="text-[10px] text-slate-500 ml-7 leading-tight">Match payouts from Amazon, Flipkart, COD & gateways.</span>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: Logistics & Dispatch -->
+            <div class="w-1/4 max-w-[280px] min-w-[200px] flex flex-col justify-center gap-2.5 md:gap-3.5 z-10">
+                <div class="text-[11px] font-extrabold uppercase tracking-widest text-slate-400 mb-0.5 mr-1 text-right flex items-center justify-end gap-1.5">
+                    Fulfillment Network <i class="fa-solid fa-truck-fast text-purple-500"></i>
+                </div>
+                
+                <div id="node-aggregator" class="node-card bg-white border border-slate-200 rounded-2xl p-2.5 md:p-3 flex flex-row-reverse items-center gap-3 shadow-sm hover:shadow-md">
+                    <div class="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-600 shrink-0 font-bold">
+                        <i class="fa-solid fa-truck-ramp-box text-lg md:text-xl"></i>
+                    </div>
+                    <div class="text-right overflow-hidden">
+                        <h3 class="font-bold text-slate-800 text-xs md:text-sm truncate">Aggregators</h3>
+                        <p class="text-[10px] text-slate-500 truncate">Shiprocket, Pickrr</p>
+                    </div>
+                </div>
+
+                <div id="node-3pl" class="node-card bg-white border border-slate-200 rounded-2xl p-2.5 md:p-3 flex flex-row-reverse items-center gap-3 shadow-sm hover:shadow-md">
+                    <div class="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-600 shrink-0 font-bold">
+                        <i class="fa-solid fa-plane-departure text-lg md:text-xl"></i>
+                    </div>
+                    <div class="text-right overflow-hidden">
+                        <h3 class="font-bold text-slate-800 text-xs md:text-sm truncate">Direct Integrations</h3>
+                        <p class="text-[10px] text-slate-500 truncate">Delhivery, BlueDart, XpressBees</p>
+                    </div>
+                </div>
+
+                <div id="node-tracking" class="node-card bg-white border border-slate-200 rounded-2xl p-2.5 md:p-3 flex flex-row-reverse items-center gap-3 shadow-sm hover:shadow-md">
+                    <div class="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-600 shrink-0 font-bold">
+                        <i class="fa-solid fa-satellite-dish text-lg md:text-xl"></i>
+                    </div>
+                    <div class="text-right overflow-hidden">
+                        <h3 class="font-bold text-slate-800 text-xs md:text-sm truncate">AWB & Tracking Sync</h3>
+                        <p class="text-[10px] text-slate-500 truncate">Fetch tracking & sync to ERP</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global State & Flow Control
+        let flowTimeouts = [];
+
+        function clearAllTimeouts() {
+            flowTimeouts.forEach(t => clearTimeout(t));
+            flowTimeouts = [];
+        }
+
+        // Initialize Layout and Auto-Animation Loop
+        window.onload = () => {
+            setTimeout(() => {
+                drawConnections();
+                runAutomationSequence();
+            }, 150);
+        };
+
+        // Recalculate Diagram SVG Lines
+        function getCenter(el) {
+            const container = document.getElementById('diagram-container');
+            if(!el || !container) return {x:0, y:0};
+            
+            const elRect = el.getBoundingClientRect();
+            const contRect = container.getBoundingClientRect();
+            
+            return {
+                x: (elRect.left - contRect.left) + (elRect.width / 2),
+                y: (elRect.top - contRect.top) + (elRect.height / 2)
+            };
+        }
+
+        function drawLine(svg, x1, y1, x2, y2, id) {
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            
+            const controlPointOffset = Math.abs(x2 - x1) * 0.45;
+            const d = `M ${x1} ${y1} C ${x1 + controlPointOffset} ${y1}, ${x2 - controlPointOffset} ${y2}, ${x2} ${y2}`;
+            
+            path.setAttribute('d', d);
+            path.setAttribute('id', id);
+            path.setAttribute('stroke', '#cbd5e1'); // Slate-300 default
+            path.setAttribute('stroke-width', '2');
+            path.setAttribute('fill', 'none');
+            path.setAttribute('stroke-dasharray', '5 5');
+            path.style.transition = 'stroke 0.4s, stroke-width 0.4s';
+            
+            svg.appendChild(path);
+        }
+
+        function drawConnections() {
+            const svg = document.getElementById('svg-canvas');
+            if (!svg) return;
+            
+            svg.innerHTML = ''; 
+
+            const odooNode = document.getElementById('node-odoo');
+            if(!odooNode) return;
+
+            const odooCenter = getCenter(odooNode);
+
+            // Connect Left Channels -> Center ERP Hub
+            const leftNodes = ['node-shopify', 'node-marketplaces', 'node-niche', 'node-pos'];
+            leftNodes.forEach(id => {
+                const node = document.getElementById(id);
+                if(node) {
+                    const nodeCenter = getCenter(node);
+                    drawLine(svg, nodeCenter.x + (node.offsetWidth/2), nodeCenter.y, odooCenter.x - (odooNode.offsetWidth/2), odooCenter.y, `path-${id}-to-erp`);
+                }
+            });
+
+            // Connect Center ERP Hub -> Right Logistics
+            const rightNodes = ['node-aggregator', 'node-3pl', 'node-tracking'];
+            rightNodes.forEach(id => {
+                const node = document.getElementById(id);
+                if(node) {
+                    const nodeCenter = getCenter(node);
+                    drawLine(svg, odooCenter.x + (odooNode.offsetWidth/2), odooCenter.y, nodeCenter.x - (node.offsetWidth/2), nodeCenter.y, `path-erp-to-${id}`);
+                }
+            });
+        }
+
+        // Redraw connections gracefully on window resize
+        window.addEventListener('resize', () => {
+            drawConnections();
+        });
+
+        // Dynamic SVG Path Line Flow Animation Control
+        function setPathFlow(pathId, flowClass) {
+            const path = document.getElementById(pathId);
+            if (path) {
+                path.className.baseVal = flowClass;
+            }
+        }
+
+        function clearAllPathFlows() {
+            const leftNodes = ['node-shopify', 'node-marketplaces', 'node-niche', 'node-pos'];
+            leftNodes.forEach(id => setPathFlow(`path-${id}-to-erp`, ''));
+            
+            const rightNodes = ['node-aggregator', 'node-3pl', 'node-tracking'];
+            rightNodes.forEach(id => setPathFlow(`path-erp-to-${id}`, ''));
+        }
+
+        // Animation Utilities
+        function setStatus(text, bgClass) {
+            const statusEl = document.getElementById('sys-status');
+            if (!statusEl) return;
+            statusEl.innerText = text;
+            statusEl.className = `w-full text-xs md:text-sm py-2.5 px-5 rounded-2xl text-center font-mono tracking-wide transition-all duration-300 border shadow-sm font-bold flex items-center justify-center min-h-[46px] ${bgClass}`;
+        }
+
+        function highlightNode(id, duration, colorClass = 'anim-pulse-border') {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.classList.add(colorClass);
+            setTimeout(() => {
+                el.classList.remove(colorClass);
+            }, duration);
+        }
+
+        function animatePacket(startId, endId, text, color, reverse = false, duration = 1800, fromExactCenter = false) {
+            const container = document.getElementById('diagram-container');
+            const startNode = document.getElementById(startId);
+            const endNode = document.getElementById(endId);
+            
+            if(!startNode || !endNode) return;
+
+            let startPos = getCenter(startNode);
+            let endPos = getCenter(endNode);
+            
+            if (!fromExactCenter) {
+                if(!reverse) {
+                    if(startId !== 'node-odoo') startPos.x += startNode.offsetWidth / 2;
+                    if(endId !== 'node-odoo') endPos.x -= endNode.offsetWidth / 2;
+                    else endPos.x -= endNode.offsetWidth / 2;
+                } else {
+                    if(startId !== 'node-odoo') startPos.x -= startNode.offsetWidth / 2;
+                    else startPos.x += startNode.offsetWidth / 2;
+                    if(endId !== 'node-odoo') endPos.x += endNode.offsetWidth / 2;
+                }
+            } else {
+                if (reverse) {
+                   endPos.x += endNode.offsetWidth / 2; 
+                } else {
+                   endPos.x -= endNode.offsetWidth / 2; 
+                }
+            }
+
+            const packet = document.createElement('div');
+            packet.className = 'absolute z-50 text-[10px] font-extrabold px-3 py-1 rounded-full shadow-lg whitespace-nowrap text-white transition-all ease-in-out pointer-events-none flex items-center justify-center border border-white/30';
+            packet.style.backgroundColor = color;
+            packet.style.left = startPos.x + 'px';
+            packet.style.top = startPos.y + 'px';
+            packet.style.transform = 'translate(-50%, -50%)';
+            packet.style.transitionDuration = `${duration}ms`;
+            packet.innerHTML = text;
+
+            container.appendChild(packet);
+
+            void packet.offsetWidth; // Force reflow
+
+            packet.style.left = endPos.x + 'px';
+            packet.style.top = endPos.y + 'px';
+
+            setTimeout(() => {
+                packet.style.opacity = '0';
+                packet.style.transform = 'translate(-50%, -50%) scale(1.15)';
+                setTimeout(() => packet.remove(), 300);
+            }, duration);
+        }
+
+        function resetFlow() {
+            clearAllTimeouts();
+            clearAllPathFlows();
+            setStatus('INITIALIZING AUTOMATION...', 'bg-white text-slate-700 border-slate-200');
+            document.querySelectorAll('.anim-pulse-border, .border-blue-500, .border-amber-500, .border-purple-500, .border-emerald-500, .border-cyan-500, .border-indigo-500, .border-violet-500').forEach(el => {
+                el.classList.remove('anim-pulse-border', 'border-blue-500', 'border-amber-500', 'border-purple-500', 'border-emerald-500', 'border-cyan-500', 'border-indigo-500', 'border-violet-500');
+            });
+        }
+
+        // STEP-BY-STEP AUTOMATION SEQUENCE
+        function runAutomationSequence() {
+            resetFlow();
+
+            // STEP 1: Import Sales Orders from Channels -> ERP
+            setStatus('STEP 1: Importing Sales Orders from Channels into Centralized ERP Hub...', 'bg-blue-50 text-blue-800 border-blue-200');
+            
+            ['node-shopify', 'node-marketplaces', 'node-niche', 'node-pos'].forEach(id => {
+                setPathFlow(`path-${id}-to-erp`, 'flow-blue-forward');
+                highlightNode(id, 2200);
+            });
+
+            const packetSpeed = 1800;
+
+            animatePacket('node-shopify', 'node-odoo', '<i class="fa-solid fa-cart-shopping mr-1"></i> Order #1042', '#2563EB', false, packetSpeed);
+            setTimeout(() => animatePacket('node-marketplaces', 'node-odoo', '<i class="fa-solid fa-cart-shopping mr-1"></i> AMZ-991', '#2563EB', false, packetSpeed), 300);
+            setTimeout(() => animatePacket('node-niche', 'node-odoo', '<i class="fa-solid fa-cart-shopping mr-1"></i> NYK-44', '#2563EB', false, packetSpeed), 600);
+            setTimeout(() => animatePacket('node-pos', 'node-odoo', '<i class="fa-solid fa-cart-shopping mr-1"></i> POS-01', '#2563EB', false, packetSpeed), 900);
+            
+            flowTimeouts.push(setTimeout(() => {
+                highlightNode('node-odoo', 1800, 'border-blue-500');
+                highlightNode('mod-sales', 1800, 'border-blue-500');
+            }, 1400));
+
+            // STEP 2: Invoicing & Stock Allocation
+            flowTimeouts.push(setTimeout(() => {
+                clearAllPathFlows();
+                setStatus('STEP 2: Auto-generating GST Invoices & reserving stock in Live Ledger across all Channels...', 'bg-indigo-50 text-indigo-800 border-indigo-200');
+                
+                ['node-shopify', 'node-marketplaces', 'node-niche', 'node-pos'].forEach(id => {
+                    setPathFlow(`path-${id}-to-erp`, 'flow-emerald-backward');
+                });
+
+                highlightNode('node-odoo', 2800, 'border-indigo-500');
+                highlightNode('mod-invoice', 2000, 'border-indigo-500');
+                highlightNode('mod-stock', 2600, 'border-emerald-500');
+                
+                animatePacket('mod-stock', 'node-shopify', '-1 Stock Sync', '#059669', true, packetSpeed, true);
+                setTimeout(() => animatePacket('mod-stock', 'node-marketplaces', '-1 Stock Sync', '#059669', true, packetSpeed, true), 250);
+                setTimeout(() => animatePacket('mod-stock', 'node-niche', '-1 Stock Sync', '#059669', true, packetSpeed, true), 500);
+                setTimeout(() => animatePacket('mod-stock', 'node-pos', '-1 Stock Sync', '#059669', true, packetSpeed, true), 750);
+
+            }, 3500));
+
+            // STEP 3: Quality Control & Pick/Pack
+            flowTimeouts.push(setTimeout(() => {
+                clearAllPathFlows();
+                setStatus('STEP 3: Internal ERP Processing - Quality Control (QC) Inspection & Batch Picking...', 'bg-amber-50 text-amber-800 border-amber-200');
+                highlightNode('node-odoo', 3200, 'border-amber-500');
+                
+                highlightNode('mod-qc', 1500, 'border-amber-500');
+                
+                flowTimeouts.push(setTimeout(() => {
+                    highlightNode('mod-pick', 1500, 'border-amber-500');
+                }, 1400));
+
+            }, 7000));
+
+            // STEP 4: Dispatch to Fulfillment
+            flowTimeouts.push(setTimeout(() => {
+                clearAllPathFlows();
+                setStatus('STEP 4: Handing over packed orders to Logistics Aggregators & 3PL Partners...', 'bg-purple-50 text-purple-800 border-purple-200');
+                
+                setPathFlow('path-erp-to-node-aggregator', 'flow-purple-forward');
+                setPathFlow('path-erp-to-node-3pl', 'flow-purple-forward');
+
+                highlightNode('node-odoo', 2800, 'border-purple-500');
+                highlightNode('mod-pick', 1800, 'border-purple-500');
+                
+                animatePacket('node-odoo', 'node-aggregator', '<i class="fa-solid fa-box mr-1"></i> Dispatch Request', '#9333EA', false, packetSpeed);
+                setTimeout(() => animatePacket('node-odoo', 'node-3pl', '<i class="fa-solid fa-box mr-1"></i> Dispatch Request', '#9333EA', false, packetSpeed), 350);
+
+                flowTimeouts.push(setTimeout(() => {
+                    highlightNode('node-aggregator', 1600);
+                    highlightNode('node-3pl', 1600);
+                }, 1600));
+
+            }, 10400));
+
+            // STEP 5: AWB & Tracking Sync
+            flowTimeouts.push(setTimeout(() => {
+                clearAllPathFlows();
+                setStatus('STEP 5: Fetching AWB & Tracking details from Fulfillment Network & Syncing to Sales Channels...', 'bg-cyan-50 text-cyan-800 border-cyan-200');
+                
+                setPathFlow('path-erp-to-node-tracking', 'flow-cyan-backward');
+                
+                highlightNode('node-tracking', 2200);
+                animatePacket('node-tracking', 'node-odoo', '<i class="fa-solid fa-satellite-dish mr-1"></i> AWB & Tracking to ERP', '#0891b2', true, packetSpeed);
+
+                flowTimeouts.push(setTimeout(() => {
+                    highlightNode('node-odoo', 3200, 'border-cyan-500');
+                    highlightNode('mod-sales', 2800, 'border-cyan-500');
+
+                    ['node-shopify', 'node-marketplaces', 'node-niche', 'node-pos'].forEach(id => {
+                        setPathFlow(`path-${id}-to-erp`, 'flow-blue-backward');
+                    });
+
+                    animatePacket('node-odoo', 'node-shopify', '<i class="fa-solid fa-barcode mr-1"></i> Sync AWB & Tracking', '#0284c7', true, packetSpeed, true);
+                    setTimeout(() => animatePacket('node-odoo', 'node-marketplaces', '<i class="fa-solid fa-barcode mr-1"></i> Sync AWB & Tracking', '#0284c7', true, packetSpeed, true), 300);
+                    setTimeout(() => animatePacket('node-odoo', 'node-niche', '<i class="fa-solid fa-barcode mr-1"></i> Sync AWB & Tracking', '#0284c7', true, packetSpeed, true), 600);
+                    setTimeout(() => animatePacket('node-odoo', 'node-pos', '<i class="fa-solid fa-barcode mr-1"></i> Sync AWB & Tracking', '#0284c7', true, packetSpeed, true), 900);
+                }, 2000));
+
+            }, 14200));
+
+            // STEP 6 skipped in animation as requested. Display Completion Banner directly after Step 5.
+            flowTimeouts.push(setTimeout(() => {
+                clearAllPathFlows();
+                setStatus('Automation Complete. Keeping all 75+ Stores & Online Channels in 100% sync for all processes...', 'bg-emerald-600 text-white border-emerald-500 shadow-lg shadow-emerald-600/20 font-extrabold');
+                highlightNode('node-odoo', 4500, 'border-emerald-500');
+
+                flowTimeouts.push(setTimeout(() => {
+                    runAutomationSequence();
+                }, 5000));
+            }, 18500));
+        }
+    </script>
+</body>
+</html>
